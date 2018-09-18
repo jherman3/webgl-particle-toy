@@ -1,3 +1,8 @@
+declare var WebGLDebugUtils: any;
+
+function throwOnGLError(err, funcName, args) {
+    throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
+  };
 
 // Set up WebGL
 var canvas = <HTMLCanvasElement>document.getElementById("mainCanvas");
@@ -5,6 +10,7 @@ var gl = canvas.getContext("webgl2");
 if (!gl) {
     console.log("Error: could not get webgl2");
 } else {
+    gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
     main(gl);
 }
 
@@ -17,8 +23,9 @@ function createShader(gl, type, source) {
     if (success) {
         return shader;
     } else {
+        var e = "Shader build error: " + gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
-        throw new Error("Shader build error: " + gl.getShaderInfoLog(shader));
+        throw new Error(e);
     }
 }
 // Adapted from https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
@@ -31,8 +38,9 @@ function createProgram(gl, vertexShader, fragmentShader) {
     if (success) {
         return program;
     } else {
+        var e = "Program link error: " + gl.getProgramInfoLog(program);
         gl.deleteProgram(program);
-        throw new Error("Program link error: " + gl.getProgramInfoLog(program));
+        throw new Error(e);
     }
 }
 
@@ -41,14 +49,15 @@ function main(gl: WebGL2RenderingContext) {
 
     // an attribute is an input (in) to a vertex shader.
     // It will receive data from a buffer
-    in vec4 a_position;
+    in vec2 a_position;
+    in vec2 a_velocity;
+    out vec2 v_velocity;
 
     // all shaders have a main function
     void main() {
-
-      // gl_Position is a special variable a vertex shader
-      // is responsible for setting
-      gl_Position = a_position;
+      gl_Position = vec4(a_position, 0, 1);
+      // Pass through to fragment shader
+      v_velocity = a_velocity;
     }`;
 
     var fs_source = `#version 300 es
@@ -57,50 +66,61 @@ function main(gl: WebGL2RenderingContext) {
     // to pick one. mediump is a good default. It means "medium precision"
     precision mediump float;
 
+    in vec2 v_velocity;
     // we need to declare an output for the fragment shader
     out vec4 outColor;
 
     void main() {
-    // Just set the output to a constant redish-purple
-    outColor = vec4(1, 0, 0.5, 1);
+        // TODO: Brighten with velocity
+        outColor = vec4(1, 1, 1, 1);
     }`;
 
     var vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
     var fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
     var program = createProgram(gl, vs, fs);
 
-    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-
     var positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    var velocityBuffer = gl.createBuffer();
 
-    var positions = [
-        0, 0,
-        0, 0.5,
-        0.7, 0,
-    ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    var positions = [];
+    var vels = [];
+    for(var i = 0; i < 1000; i++) {
+        positions.push(2 * Math.random() - 1); // x
+        positions.push(2 * Math.random() - 1); // y
+        vels.push(0.0);
+        vels.push(0.0);
+    }
+
+    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    var velocityAttributeLocation = gl.getAttribLocation(program, "a_velocity");
 
     var vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
-    gl.enableVertexAttribArray(positionAttributeLocation);
 
-    // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+    // Setup buffers
     var size = 2;          // 2 components per iteration
     var type = gl.FLOAT;   // the data is 32bit floats
     var normalize = false; // don't normalize the data
     var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
     var offset = 0;        // start at the beginning of the buffer
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(
         positionAttributeLocation, size, type, normalize, stride, offset);
 
-    // webglUtils.resizeCanvasToDisplaySize(gl.canvas);
+    gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(velocityAttributeLocation);
+    gl.vertexAttribPointer(
+        velocityAttributeLocation, size, type, normalize, stride, offset);
 
     // Tell WebGL how to convert from clip space to pixels
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     // Clear the canvas
-    gl.clearColor(0, 0, 0, 0);
+    gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     // Tell it to use our program (pair of shaders)
@@ -110,8 +130,28 @@ function main(gl: WebGL2RenderingContext) {
     gl.bindVertexArray(vao);
 
     // draw
-    var primitiveType = gl.TRIANGLES;
+    var primitiveType = gl.POINTS;
     var offset = 0;
-    var count = 3;
-    gl.drawArrays(primitiveType, offset, count);
+    var count = 1000;
+
+    function drawScene() {
+        positions = [];
+        vels = [];
+        for(var i = 0; i < 1000; i++) {
+            positions.push(2 * Math.random() - 1); // x
+            positions.push(2 * Math.random() - 1); // y
+            vels.push(0.0);
+            vels.push(0.0);
+        }
+        // Update buffers and draw
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
+        gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.drawArrays(primitiveType, offset, count);
+        requestAnimationFrame(drawScene);
+    }
+    drawScene();
 }
