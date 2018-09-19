@@ -28,21 +28,6 @@ function createShader(gl, type, source) {
         throw new Error(e);
     }
 }
-// Adapted from https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
-function createProgram(gl, vertexShader, fragmentShader) {
-    var program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-    var success = gl.getProgramParameter(program, gl.LINK_STATUS);
-    if (success) {
-        return program;
-    } else {
-        var e = "Program link error: " + gl.getProgramInfoLog(program);
-        gl.deleteProgram(program);
-        throw new Error(e);
-    }
-}
 
 function main(gl: WebGL2RenderingContext) {
     var vs_source = `#version 300 es
@@ -51,6 +36,7 @@ function main(gl: WebGL2RenderingContext) {
     // It will receive data from a buffer
     in vec2 a_position;
     in vec2 a_velocity;
+    out vec2 v_position;
     out vec2 v_velocity;
 
     // all shaders have a main function
@@ -58,6 +44,10 @@ function main(gl: WebGL2RenderingContext) {
       gl_Position = vec4(a_position, 0, 1);
       // Pass through to fragment shader
       v_velocity = a_velocity;
+
+      // Update pos/vel for transform feedback
+      v_position = a_position;
+      v_position += a_velocity;
     }`;
 
     var fs_source = `#version 300 es
@@ -72,24 +62,22 @@ function main(gl: WebGL2RenderingContext) {
 
     void main() {
         // TODO: Brighten with velocity
+        //outColor = vec4(v_velocity.x, v_velocity.y, 1, 1);
         outColor = vec4(1, 1, 1, 1);
     }`;
 
     var vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
     var fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
-    var program = createProgram(gl, vs, fs);
+    var program = gl.createProgram();
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.transformFeedbackVaryings(program, ['v_position', 'v_velocity'], gl.SEPARATE_ATTRIBS);
+    gl.linkProgram(program);
 
     var positionBuffer = gl.createBuffer();
     var velocityBuffer = gl.createBuffer();
-
-    var positions = [];
-    var vels = [];
-    for(var i = 0; i < 1000; i++) {
-        positions.push(2 * Math.random() - 1); // x
-        positions.push(2 * Math.random() - 1); // y
-        vels.push(0.0);
-        vels.push(0.0);
-    }
+    var tfPositionBuffer = gl.createBuffer();
+    var tfVelocityBuffer = gl.createBuffer();
 
     var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
     var velocityAttributeLocation = gl.getAttribLocation(program, "a_velocity");
@@ -105,13 +93,11 @@ function main(gl: WebGL2RenderingContext) {
     var offset = 0;        // start at the beginning of the buffer
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(positionAttributeLocation);
     gl.vertexAttribPointer(
         positionAttributeLocation, size, type, normalize, stride, offset);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(velocityAttributeLocation);
     gl.vertexAttribPointer(
         velocityAttributeLocation, size, type, normalize, stride, offset);
@@ -122,35 +108,63 @@ function main(gl: WebGL2RenderingContext) {
     // Clear the canvas
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
-
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
     // Bind the attribute/buffer set we want.
     gl.bindVertexArray(vao);
+    var transformFeedback = gl.createTransformFeedback();
 
-    // draw
-    var primitiveType = gl.POINTS;
-    var offset = 0;
-    var count = 1000;
+
+    var count = 10000;
+    var positions = [];
+    var vels = [];
+    for(var i = 0; i < count; i++) {
+        positions.push(2 * Math.random() - 1); // x
+        positions.push(2 * Math.random() - 1); // y
+        vels.push(0.01);
+        vels.push(0.01);
+    }
+    // Update buffers and draw
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
+
+    // Fill transform buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, tfPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, tfVelocityBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     function drawScene() {
-        positions = [];
-        vels = [];
-        for(var i = 0; i < 1000; i++) {
-            positions.push(2 * Math.random() - 1); // x
-            positions.push(2 * Math.random() - 1); // y
-            vels.push(0.0);
-            vels.push(0.0);
-        }
-        // Update buffers and draw
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-        gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.drawArrays(primitiveType, offset, count);
+        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, tfPositionBuffer);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, tfVelocityBuffer);
+        gl.beginTransformFeedback(gl.POINTS);
+        gl.drawArrays(gl.POINTS, 0, count);
+        gl.endTransformFeedback();
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, null);
+        gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 1, null);
+
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, positionBuffer);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, tfPositionBuffer);
+        gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 8 * count);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, velocityBuffer);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, tfVelocityBuffer);
+        gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, 0, 0, 8 * count);
+        gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
+        gl.bindBuffer(gl.COPY_READ_BUFFER, null);
+
+        // // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        // var arrBuffer = new Float32Array(2000);
+        // gl.bindBuffer(gl.ARRAY_BUFFER, tfPositionBuffer);
+        // gl.getBufferSubData(gl.ARRAY_BUFFER, 0, arrBuffer, 0, 2000);
+        // console.log(arrBuffer);
         requestAnimationFrame(drawScene);
     }
     drawScene();
