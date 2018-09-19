@@ -32,22 +32,55 @@ function createShader(gl, type, source) {
 function main(gl: WebGL2RenderingContext) {
     var vs_source = `#version 300 es
 
-    // an attribute is an input (in) to a vertex shader.
-    // It will receive data from a buffer
+    uniform vec2 mouse;
+    uniform bool accel;
+    uniform float accelAmount;
+
     in vec2 a_position;
     in vec2 a_velocity;
     out vec2 v_position;
     out vec2 v_velocity;
+
+    // from https://thebookofshaders.com/10/
+    float random (vec2 st) {
+        return fract(sin(dot(st.xy,
+                             vec2(12.9898,78.233)))*
+            43758.5453123);
+    }
 
     // all shaders have a main function
     void main() {
       gl_Position = vec4(a_position, 0, 1);
       // Pass through to fragment shader
       v_velocity = a_velocity;
+      if(accel) {
+          vec2 del = normalize(mouse - a_position);
+          v_velocity += del * accelAmount;
+      }
+
+      // Friction
+      v_velocity *= (1.0 - 0.01 * (1.0 + random(v_position)));
 
       // Update pos/vel for transform feedback
       v_position = a_position;
-      v_position += a_velocity;
+      v_position += v_velocity;
+      if(v_position.x > 1.0) {
+          v_position.x = 1.0;
+          v_velocity.x = -v_velocity.x;
+      }
+      if(v_position.y > 1.0) {
+        v_position.y = 1.0;
+        v_velocity.y = -v_velocity.y;
+      }
+      if(v_position.x < -1.0) {
+        v_position.x = -1.0;
+        v_velocity.x = -v_velocity.x;
+      }
+      if(v_position.y < -1.0) {
+        v_position.y = -1.0;
+        v_velocity.y = -v_velocity.y;
+      }
+
     }`;
 
     var fs_source = `#version 300 es
@@ -81,6 +114,10 @@ function main(gl: WebGL2RenderingContext) {
 
     var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
     var velocityAttributeLocation = gl.getAttribLocation(program, "a_velocity");
+
+    var accelLocation = gl.getUniformLocation(program, "accel");
+    var accelAmountLocation = gl.getUniformLocation(program, "accelAmount");
+    var mouseLocation = gl.getUniformLocation(program, "mouse");
 
     var vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -116,7 +153,7 @@ function main(gl: WebGL2RenderingContext) {
     var transformFeedback = gl.createTransformFeedback();
 
 
-    var count = 10000;
+    var count = 100000;
     var positions = [];
     var vels = [];
     for(var i = 0; i < count; i++) {
@@ -125,6 +162,11 @@ function main(gl: WebGL2RenderingContext) {
         vels.push(0.01);
         vels.push(0.01);
     }
+
+    var accelAmount = 0.002;
+    var mouse = [0.0, 0.0];
+    var accel = false;
+
     // Update buffers and draw
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
@@ -139,7 +181,23 @@ function main(gl: WebGL2RenderingContext) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+    canvas.addEventListener("mousemove", function(e){
+        mouse[0] = (e.offsetX / canvas.clientWidth)*2-1;
+        mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight)*2-1;
+    });
+    canvas.addEventListener("mousedown", function() {
+        accel = true;
+    });
+    canvas.addEventListener("mouseup", function() {
+        accel = false;
+    });
+
     function drawScene() {
+
+        gl.uniform1i(accelLocation, accel ? 1 : 0);
+        gl.uniform1f(accelAmountLocation, accelAmount);
+        gl.uniform2f(mouseLocation, mouse[0], mouse[1]);
+
         gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
@@ -167,5 +225,6 @@ function main(gl: WebGL2RenderingContext) {
         // console.log(arrBuffer);
         requestAnimationFrame(drawScene);
     }
+
     drawScene();
 }
