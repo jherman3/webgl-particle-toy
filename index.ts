@@ -5,33 +5,34 @@ function throwOnGLError(err, funcName, args) {
   };
 
 // Set up WebGL
-var canvas = <HTMLCanvasElement>document.getElementById("mainCanvas");
-var gl = canvas.getContext("webgl2");
+let canvas = <HTMLCanvasElement>document.getElementById("mainCanvas");
+let gl = canvas.getContext("webgl2");
 if (!gl) {
     console.log("Error: could not get webgl2");
     canvas.hidden = true;
 } else {
+    document.getElementById("glerror").hidden = true;
     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
     main(gl);
 }
 
 // Adapted from https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
 function createShader(gl, type, source) {
-    var shader = gl.createShader(type);
+    let shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
-    var success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+    let success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
     if (success) {
         return shader;
     } else {
-        var e = "Shader build error: " + gl.getShaderInfoLog(shader);
+        let e = "Shader build error: " + gl.getShaderInfoLog(shader);
         gl.deleteShader(shader);
         throw new Error(e);
     }
 }
 
 function main(gl: WebGL2RenderingContext) {
-    var vs_source = `#version 300 es
+    let vs_source = `#version 300 es
 
     uniform vec2 mouse;
     uniform bool accel;
@@ -53,6 +54,7 @@ function main(gl: WebGL2RenderingContext) {
       gl_Position = vec4(a_position, 0, 1);
       // Pass through to fragment shader
       v_velocity = a_velocity;
+
       if(accel) {
           vec2 del = normalize(mouse - a_position);
           v_velocity += del * accelAmount;
@@ -65,25 +67,25 @@ function main(gl: WebGL2RenderingContext) {
       v_position = a_position;
       v_position += v_velocity;
       if(v_position.x > 1.0) {
-          v_position.x = 1.0;
+          v_position.x = 2.0 - v_position.x;
           v_velocity.x = -v_velocity.x;
       }
       if(v_position.y > 1.0) {
-        v_position.y = 1.0;
+        v_position.y = 2.0 - v_position.y;
         v_velocity.y = -v_velocity.y;
       }
       if(v_position.x < -1.0) {
-        v_position.x = -1.0;
+        v_position.x = -2.0 - v_position.x;
         v_velocity.x = -v_velocity.x;
       }
       if(v_position.y < -1.0) {
-        v_position.y = -1.0;
+        v_position.y = -2.0 - v_position.y;
         v_velocity.y = -v_velocity.y;
       }
 
     }`;
 
-    var fs_source = `#version 300 es
+    let fs_source = `#version 300 es
 
     // fragment shaders don't have a default precision so we need
     // to pick one. mediump is a good default. It means "medium precision"
@@ -104,35 +106,35 @@ function main(gl: WebGL2RenderingContext) {
         outColor = vec4(hsv2rgb(vec3(0.6 - vel * 0.6, 1.0, 0.2 + vel)), 1.0);
     }`;
 
-    var vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
-    var fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
-    var program = gl.createProgram();
+    let vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
+    let fs = createShader(gl, gl.FRAGMENT_SHADER, fs_source);
+    let program = gl.createProgram();
     gl.attachShader(program, vs);
     gl.attachShader(program, fs);
     gl.transformFeedbackVaryings(program, ['v_position', 'v_velocity'], gl.SEPARATE_ATTRIBS);
     gl.linkProgram(program);
 
-    var positionBuffer = gl.createBuffer();
-    var velocityBuffer = gl.createBuffer();
-    var tfPositionBuffer = gl.createBuffer();
-    var tfVelocityBuffer = gl.createBuffer();
+    let positionBuffer = gl.createBuffer();
+    let velocityBuffer = gl.createBuffer();
+    let tfPositionBuffer = gl.createBuffer();
+    let tfVelocityBuffer = gl.createBuffer();
 
-    var positionAttributeLocation = gl.getAttribLocation(program, "a_position");
-    var velocityAttributeLocation = gl.getAttribLocation(program, "a_velocity");
+    let positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+    let velocityAttributeLocation = gl.getAttribLocation(program, "a_velocity");
 
-    var accelLocation = gl.getUniformLocation(program, "accel");
-    var accelAmountLocation = gl.getUniformLocation(program, "accelAmount");
-    var mouseLocation = gl.getUniformLocation(program, "mouse");
+    let accelLocation = gl.getUniformLocation(program, "accel");
+    let accelAmountLocation = gl.getUniformLocation(program, "accelAmount");
+    let mouseLocation = gl.getUniformLocation(program, "mouse");
 
-    var vao = gl.createVertexArray();
+    let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
 
     // Setup buffers
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
+    let size = 2;          // 2 components per iteration
+    let type = gl.FLOAT;   // the data is 32bit floats
+    let normalize = false; // don't normalize the data
+    let stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    let offset = 0;        // start at the beginning of the buffer
 
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.enableVertexAttribArray(positionAttributeLocation);
@@ -149,12 +151,12 @@ function main(gl: WebGL2RenderingContext) {
 
     // Bind the attribute/buffer set we want.
     gl.bindVertexArray(vao);
-    var transformFeedback = gl.createTransformFeedback();
+    let transformFeedback = gl.createTransformFeedback();
 
     var count = 10000;
     let initParticles = function() {
-        var positions = [];
-        var vels = [];
+        let positions = [];
+        let vels = [];
         for(var i = 0; i < count; i++) {
             positions.push(2 * Math.random() - 1); // x
             positions.push(2 * Math.random() - 1); // y
