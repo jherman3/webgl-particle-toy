@@ -23,4 +23,5 @@ to combine them. Also (hopefully), it looks cool and is fun to play with.
 * WebGL 2
 
 ### What didn't work
-* TBD
+* I tried for a while to get transform feedback to work with a single buffer rather
+than separate input/output buffers, but I never could get it working quite right.

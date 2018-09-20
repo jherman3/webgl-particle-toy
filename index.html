@@ -5,11 +5,27 @@
 <head>
     <meta charset="utf-8">
     <title>Particle Toy</title>
-    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <canvas id="mainCanvas" width="1024" height="768"></canvas>
+    <canvas id="mainCanvas"></canvas>
+    <div class="sliders">
+        Left click to attract. Right click to repel. Have fun!
+        <ul>
+            <li>
+                <input type="range" min="0" max="100" value="15" class="slider" id="accel">
+                Acceleration: <span id="accelVal"></span>
+            </li>
+            <li>
+                <input type="range" min="0" max="100" value="50" class="slider" id="points">
+                Points: <span id="pointsVal"></span>
+            </li>
+        </ul>
+
+    </div>
+    <h1>Error: Could not load WebGL 2</h1>
+    <h2>This site needs WebGL 2. Your browser doesn't seem to support it. Try a recent version of Chrome</h2>
     <script src="webgl-debug.js"></script>
     <script src="index.js"></script>
 </body>

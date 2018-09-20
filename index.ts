@@ -9,6 +9,7 @@ var canvas = <HTMLCanvasElement>document.getElementById("mainCanvas");
 var gl = canvas.getContext("webgl2");
 if (!gl) {
     console.log("Error: could not get webgl2");
+    canvas.hidden = true;
 } else {
     gl = WebGLDebugUtils.makeDebugContext(gl, throwOnGLError);
     main(gl);
@@ -48,7 +49,6 @@ function main(gl: WebGL2RenderingContext) {
             43758.5453123);
     }
 
-    // all shaders have a main function
     void main() {
       gl_Position = vec4(a_position, 0, 1);
       // Pass through to fragment shader
@@ -93,10 +93,15 @@ function main(gl: WebGL2RenderingContext) {
     // we need to declare an output for the fragment shader
     out vec4 outColor;
 
+    vec3 hsv2rgb(vec3 c) {
+        vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+        vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+        return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+    }
+
     void main() {
-        // TODO: Brighten with velocity
-        //outColor = vec4(v_velocity.x, v_velocity.y, 1, 1);
-        outColor = vec4(1, 1, 1, 1);
+        float vel = length(v_velocity) * 20.0;
+        outColor = vec4(hsv2rgb(vec3(0.6 - vel * 0.6, 1.0, 0.2 + vel)), 1.0);
     }`;
 
     var vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
@@ -139,12 +144,6 @@ function main(gl: WebGL2RenderingContext) {
     gl.vertexAttribPointer(
         velocityAttributeLocation, size, type, normalize, stride, offset);
 
-    // Tell WebGL how to convert from clip space to pixels
-    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-
-    // Clear the canvas
-    gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT);
     // Tell it to use our program (pair of shaders)
     gl.useProgram(program);
 
@@ -152,53 +151,86 @@ function main(gl: WebGL2RenderingContext) {
     gl.bindVertexArray(vao);
     var transformFeedback = gl.createTransformFeedback();
 
+    var count = 10000;
+    let initParticles = function() {
+        var positions = [];
+        var vels = [];
+        for(var i = 0; i < count; i++) {
+            positions.push(2 * Math.random() - 1); // x
+            positions.push(2 * Math.random() - 1); // y
+            vels.push(0.0);
+            vels.push(0.0);
+        }
+        // Fill main buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
 
-    var count = 100000;
-    var positions = [];
-    var vels = [];
-    for(var i = 0; i < count; i++) {
-        positions.push(2 * Math.random() - 1); // x
-        positions.push(2 * Math.random() - 1); // y
-        vels.push(0.01);
-        vels.push(0.01);
+        // Fill transform buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, tfPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, tfVelocityBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
-    var accelAmount = 0.002;
+    // Set by input callback
+    var accelAmount = 0.0;
     var mouse = [0.0, 0.0];
     var accel = false;
 
-    // Update buffers and draw
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, velocityBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
-
-    // Fill transform buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, tfPositionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, tfVelocityBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vels), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
+    // Callbacks
+    canvas.oncontextmenu = function() {return false;};
     canvas.addEventListener("mousemove", function(e){
         mouse[0] = (e.offsetX / canvas.clientWidth)*2-1;
         mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight)*2-1;
     });
-    canvas.addEventListener("mousedown", function() {
+    canvas.addEventListener("mousedown", function(e) {
         accel = true;
+        if(e.button == 2) {
+            // Invert acceleration for right click
+            accelAmount = -Math.abs(accelAmount);
+        } else {
+            accelAmount = Math.abs(accelAmount);
+        }
     });
     canvas.addEventListener("mouseup", function() {
         accel = false;
     });
+    let handleResize = function() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Tell WebGL how to convert from clip space to pixels
+        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+    };
+    window.addEventListener("resize", handleResize);
+    let acval = document.getElementById("accelVal");
+    let ac = document.getElementById("accel")
+    ac.oninput = function(this: HTMLInputElement, ev: Event) {
+        accelAmount = Number(this.value) * 0.0001;
+        acval.textContent = accelAmount.toPrecision(3);
+    };
+    let pointsVal = document.getElementById("pointsVal");
+    let points = document.getElementById("points");
+    var newCount = 0;
+    points.oninput = function(this: HTMLInputElement, ev: Event) {
+        newCount = Math.round(500 * Math.exp(Number(this.value) / 12));
+        pointsVal.textContent = "" + newCount;
+    };
+    points.onchange = function(this: HTMLInputElement, ev: Event) {
+        // When user is done sliding, re-init particle buffers
+        count = newCount;
+        initParticles();
+    };
 
     function drawScene() {
-
         gl.uniform1i(accelLocation, accel ? 1 : 0);
         gl.uniform1f(accelAmountLocation, accelAmount);
         gl.uniform2f(mouseLocation, mouse[0], mouse[1]);
 
-        gl.clearColor(0, 0, 0, 1);
+        gl.clearColor(0.01, 0.01, 0.01, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback);
         gl.bindBufferBase(gl.TRANSFORM_FEEDBACK_BUFFER, 0, tfPositionBuffer);
@@ -218,13 +250,12 @@ function main(gl: WebGL2RenderingContext) {
         gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
         gl.bindBuffer(gl.COPY_READ_BUFFER, null);
 
-        // // gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        // var arrBuffer = new Float32Array(2000);
-        // gl.bindBuffer(gl.ARRAY_BUFFER, tfPositionBuffer);
-        // gl.getBufferSubData(gl.ARRAY_BUFFER, 0, arrBuffer, 0, 2000);
-        // console.log(arrBuffer);
         requestAnimationFrame(drawScene);
     }
-
+    // Set up points by manually calling the callbacks
+    ac.oninput(null);
+    points.oninput(null);
+    points.onchange(null);
+    handleResize();
     drawScene();
 }
