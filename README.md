@@ -9,7 +9,7 @@
 * Open the site: `$ open index.html`
 
 ### What is it
-Live demos are better than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/).
+Live demos are cooler than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/). Click and drag to interact with particles. Right click reverses the effect.
 ![screenshot](screenshot.png)
 
 It's a particle simulator that draws particles on a canvas and lets the user interact
@@ -34,9 +34,22 @@ can run in a website. I've also been interested in Typescript and new web techno
 since most of my experience is in backend systems, so this seemed like a cool way
 to combine them. Also, it looks cool and is fun to play with.
 
-### New technologies
-* Typescript
-* WebGL 2
+### What I learned
+* Typescript is very easy to work with and feels a lot like Python's new type
+system. I could see it being very useful in a large web app with a lot of
+complexity. For this simple project I probably didn't gain a ton from it, but it
+gave my editor (VS code) very good autocompletion for the complex OpenGL API so
+that was nice.
+* WebGL 2 is very powerful, but working with raw OpenGL calls really increases
+the complexity of the project. I'm just trying to draw a bunch of points on a
+canvas and to do this I had to set up a vertex buffer object, manage several
+vertex attribute arrays, write and compile/link shaders, and manage OpenGL's
+complex state machine. The performance payoff was massive but the complexity
+makes working with it very challenging. This is made worse by the fact that the
+API provides very few static guarantees so it's super easy to shoot yourself in
+the foot if you're unfamiliar with how OpenGL works. A strongly-typed wrapper that
+encapsulates OpenGL's implicit state would make this much more pleasant to work
+with.
 
 ### What didn't work
 * I tried for a while to get transform feedback to work with a single buffer rather
@@ -45,3 +58,8 @@ than separate input/output buffers, but I never could get it working quite right
 handle the sliders / text on the page so the overall page design is pretty bad
 from a web design point of view. My main interest with this exercise was the OpenGL
 part though, and that was a success.
+* I briefly looked at automated website packaging / deployment systems but I
+couldn't get it working quickly so the process for deploying this on
+github pages is to manually merge changes into the gh-pages branch and manually
+re-run the typescript compiler. Again, this is sub-optimal from a webdev point
+of view.
