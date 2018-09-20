@@ -102,8 +102,16 @@ function main(gl: WebGL2RenderingContext) {
     }
 
     void main() {
-        float vel = length(v_velocity) * 20.0;
-        outColor = vec4(hsv2rgb(vec3(0.6 - vel * 0.6, 1.0, 0.2 + vel)), 1.0);
+        // Technically HSV is supposed to be between 0 and 1 but I found that
+        // letting the value go higher causes it to wrap-around and look cool
+        float vel = clamp(length(v_velocity) * 20.0, 0.0, 2.0);
+        outColor = vec4(
+            hsv2rgb(vec3(
+                0.6 - vel * 0.6,  // hue
+                1.0,               // sat
+                max(0.2 + vel, 0.8) // vibrance
+            )),
+        1.0);
     }`;
 
     let vs = createShader(gl, gl.VERTEX_SHADER, vs_source);
