@@ -2,6 +2,12 @@
 
 ## Jake Herman
 
+### Build instructions
+* Install typescript: `$ npm install -g typescript`
+* Install project deps: `$ npm install`
+* Compile typescript: `$ tsc index.ts`
+* Open the site: `$ open index.html`
+
 ### What is it
 Live demos are better than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/).
 ![screenshot](screenshot.png)
