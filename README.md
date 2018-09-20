@@ -4,9 +4,10 @@
 
 ### What is it
 Live demos are better than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/).
+![screenshot](screenshot.png)
 
 It's a particle simulator that draws particles on a canvas and lets the user interact
-with them using the mouse. Click to accelerate and right click to do something cool.
+with them using the mouse. Click to accelerate particles toward the mouse and right click to repel them.
 
 I implemented the system using OpenGL Transform Feedback so that all of the heavy math
 is done in parallel on the GPU. This enables my 4-year-old laptop to handle over 2
@@ -25,7 +26,7 @@ and state are passed into the shader with uniforms.
 I have played with OpenGL before and thought it'd be cool to build something with it that
 can run in a website. I've also been interested in Typescript and new web technologies
 since most of my experience is in backend systems, so this seemed like a cool way
-to combine them. Also (hopefully), it looks cool and is fun to play with.
+to combine them. Also, it looks cool and is fun to play with.
 
 ### New technologies
 * Typescript
