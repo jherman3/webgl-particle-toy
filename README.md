@@ -3,10 +3,19 @@
 ## Jake Herman
 
 ### What is it
-Live demos are better than words: check it out here.
+Live demos are better than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/).
 
 It's a particle simulator that draws particles on a canvas and lets the user interact
-with them using the mouse. Click to accelerate and right click to do something cool
+with them using the mouse. Click to accelerate and right click to do something cool.
+
+I implemented the system using OpenGL Transform Feedback so that all of the heavy math
+is done in parallel on the GPU. This enables my 4-year-old laptop to handle over 2
+million particles in realtime, which would not be anywhere near practical running on
+the CPU, let alone in JS in a web browser. The basic idea is that the vertex shader
+computes the position and velocity for each particle in the next frame and saves those
+values to a buffer while drawing the current frame. The drawing thread then copies
+that buffer back into the main particle buffer once drawing is complete. Mouse position
+and state are passed into the shader with uniforms.
 
 ### Tutorials
 * https://webgl2fundamentals.org/webgl/lessons/webgl-fundamentals.html
@@ -25,3 +34,7 @@ to combine them. Also (hopefully), it looks cool and is fun to play with.
 ### What didn't work
 * I tried for a while to get transform feedback to work with a single buffer rather
 than separate input/output buffers, but I never could get it working quite right.
+* Due to simplicity / time constraints I couldn't get a nice JS UI framework to
+handle the sliders / text on the page so the overall page design is pretty bad
+from a web design point of view. My main interest with this exercise was the OpenGL
+part though, and that was a success.
