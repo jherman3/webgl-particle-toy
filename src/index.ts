@@ -122,7 +122,7 @@ window.onload = function() {
     };
     window.addEventListener("resize", handleResize);
     let acval = document.getElementById("accelVal");
-    let ac = document.getElementById("accel")
+    let ac = document.getElementById("accel");
     ac.oninput = function(this: HTMLInputElement, ev: Event) {
         accelAmount = Number(this.value) * 0.0001;
         acval.textContent = accelAmount.toPrecision(3);
@@ -138,6 +138,12 @@ window.onload = function() {
         // When user is done sliding, re-init particle buffers
         count = newCount;
         initParticles();
+    };
+    let pointsizeVal = document.getElementById("pointssizeVal");
+    let pointsize = document.getElementById('pointsize');
+    pointsize.oninput = function(this: HTMLInputElement, ev: Event) {
+        particleSize = Number(this.value);
+        pointsizeVal.textContent = "" + particleSize;
     };
 
     function drawScene() {
