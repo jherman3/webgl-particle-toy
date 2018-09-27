@@ -94,25 +94,33 @@ window.onload = function() {
     var accelAmount = 0.0;
     var mouse = [0.0, 0.0];
     var accel = false;
+    var screensaverMode = false;
     let particleSize = 1.0;
+    var screensaverCounter = 100;
 
     // Callbacks
     canvas.oncontextmenu = function() {return false;};
     canvas.addEventListener("mousemove", function(e){
-        mouse[0] = (e.offsetX / canvas.clientWidth)*2-1;
-        mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight)*2-1;
+        if(!screensaverMode){
+            mouse[0] = (e.offsetX / canvas.clientWidth)*2-1;
+            mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight)*2-1;
+        }
     });
     canvas.addEventListener("mousedown", function(e) {
-        accel = true;
-        if(e.button == 2) {
-            // Invert acceleration for right click
-            accelAmount = -Math.abs(accelAmount);
-        } else {
-            accelAmount = Math.abs(accelAmount);
+        if(!screensaverMode){            
+            accel = true;
+            if(e.button == 2) {
+                // Invert acceleration for right click
+                accelAmount = -Math.abs(accelAmount);
+            } else {
+                accelAmount = Math.abs(accelAmount);
+            }
         }
     });
     canvas.addEventListener("mouseup", function() {
-        accel = false;
+        if(!screensaverMode){
+            accel = false;
+        }
     });
     let handleResize = function() {
         canvas.width = window.innerWidth;
@@ -139,12 +147,53 @@ window.onload = function() {
         count = newCount;
         initParticles();
     };
-    let pointsizeVal = document.getElementById("pointssizeVal");
+    let pointsizeVal = document.getElementById("pointsizeVal");
     let pointsize = document.getElementById('pointsize');
     pointsize.oninput = function(this: HTMLInputElement, ev: Event) {
         particleSize = Number(this.value);
         pointsizeVal.textContent = "" + particleSize;
     };
+
+    let screensaver = document.getElementById('screensaver');    
+    screensaver.oninput = function(this: HTMLInputElement, ev: Event) {
+        // // particleSize = Number(this.value);
+        // // pointsizeVal.textContent = "" + particleSize;
+        // let element: HTMLElement = document.elementFromPoint(0, 0) as HTMLElement;
+        //     //--- Get the first link that has "stackoverflow" in its URL.
+        // var targetNode = document.querySelector ("a[href*='stackoverflow']");
+        // if (targetNode) {
+        //     //--- Simulate a natural mouse-click sequence.
+        //     triggerMouseEvent (targetNode, "mouseover");
+        //     triggerMouseEvent (targetNode, "mousedown");
+        //     triggerMouseEvent (targetNode, "mouseup");
+        //     triggerMouseEvent (targetNode, "click");
+        // }
+        // else
+        //     console.log ("*** Target node not found!");
+
+        // element.click();
+        if (this.checked){
+            screensaverMode = true;
+            accel = true;
+            randomizeMouse(-1,1);
+            screensaverCounter = 100;            
+        }else{
+            screensaverMode = false;
+            mouse = [0.0, 0.0];
+            accel = false;
+        }
+    };
+
+    //https://gist.github.com/ValeryToda/fbf1de017f91c0ec3da04116c5ccf8b5
+    function randomizeMouse(min, max) {
+        mouse = [(Math.random() * (max - min) + min).toFixed(4) , (Math.random() * (max - min) + min).toFixed(4) ];
+    }
+
+    function triggerMouseEvent (node, eventType) {
+        var clickEvent = document.createEvent ('MouseEvents');
+        clickEvent.initEvent (eventType, true, true);
+        node.dispatchEvent (clickEvent);
+    }
 
     function drawScene() {
         gl.uniform1i(accelLocation, accel ? 1 : 0);
@@ -172,6 +221,19 @@ window.onload = function() {
         gl.bindBuffer(gl.COPY_WRITE_BUFFER, null);
         gl.bindBuffer(gl.COPY_READ_BUFFER, null);
 
+        if(screensaverMode && screensaverCounter==0){
+            newFunction(randomizeMouse);
+            var decelerate = false;
+            decelerate=Math.random() < 0.2 ? true : false;
+            if (decelerate){
+                accelAmount = -Math.abs(accelAmount);
+                screensaverCounter = Math.floor((Math.random() * (100 - 10) + 10));
+            }else{
+                screensaverCounter = Math.floor((Math.random() * (300 - 10) + 10));                
+                accelAmount = Math.abs(accelAmount);
+            }
+        }
+        screensaverCounter--;
         requestAnimationFrame(drawScene);
     }
     // Set up points by manually calling the callbacks
@@ -181,3 +243,6 @@ window.onload = function() {
     handleResize();
     drawScene();
 };
+function newFunction(randomizeMouse: (min: any, max: any) => void) {
+    randomizeMouse(-1,1);
+}
