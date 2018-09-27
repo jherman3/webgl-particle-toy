@@ -1,13 +1,28 @@
-# Hack a thing 1 - WebGL particle toy
+# Hack a thing 2 - WebGL particle toy improvements
 
-## Jake Herman
+## Jake Herman, Agastya Gupta, Kevin Tan
 
 ### Build instructions
-* Install typescript: `$ npm install -g typescript`
-* Install project deps: `$ npm install`
-* Compile typescript: `$ tsc index.ts`
-* Open the site: `$ open index.html`
+* Install gulp `$ npm install gulp-cli`
+* Build: `$ gulp`
+Site is output to `dist/`
 
+### What's new
+We're iterating on the design of the hack a thing 1 project by improving the build
+system and using webdev tools like Gulp and NPM to handle dependencies. We're
+also refactoring the codebase to be more modular (the first version is quite a
+hack). This will allow us to implement more features such as a screensaver mode
+that doesn't require user interaction and (time/complexity permitting) a music
+visualizer that uses the microphone to control the particles.
+
+### What didn't work
+* We originally wanted to do a music analysis project and settled on the Essentia
+python library. We couldn't get it to build on OSX reliably and had trouble
+integrating it with Jupyter Notebook / IPython, so we shelved the project and
+decided to iterate on this one instead.
+* I'm sure more stuff will break as we work on this...
+
+# Hack a thing 1 README for background info
 ### What is it
 Live demos are cooler than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/). Click and drag to interact with particles. Right click reverses the effect.
 ![screenshot](screenshot.png)
