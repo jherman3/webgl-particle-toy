@@ -107,7 +107,7 @@ window.onload = function() {
         }
     });
     canvas.addEventListener("mousedown", function(e) {
-        if(!screensaverMode){            
+        if(!screensaverMode){
             accel = true;
             if(e.button == 2) {
                 // Invert acceleration for right click
@@ -150,11 +150,11 @@ window.onload = function() {
     let pointsizeVal = document.getElementById("pointsizeVal");
     let pointsize = document.getElementById('pointsize');
     pointsize.oninput = function(this: HTMLInputElement, ev: Event) {
-        particleSize = Number(this.value);
+        particleSize = Number(this.value) / 10.0;
         pointsizeVal.textContent = "" + particleSize;
     };
 
-    let screensaver = document.getElementById('screensaver');    
+    let screensaver = document.getElementById('screensaver');
     screensaver.oninput = function(this: HTMLInputElement, ev: Event) {
         // // particleSize = Number(this.value);
         // // pointsizeVal.textContent = "" + particleSize;
@@ -176,7 +176,7 @@ window.onload = function() {
             screensaverMode = true;
             accel = true;
             randomizeMouse(-1,1);
-            screensaverCounter = 100;            
+            screensaverCounter = 100;
         }else{
             screensaverMode = false;
             mouse = [0.0, 0.0];
@@ -229,7 +229,7 @@ window.onload = function() {
                 accelAmount = -Math.abs(accelAmount);
                 screensaverCounter = Math.floor((Math.random() * (100 - 10) + 10));
             }else{
-                screensaverCounter = Math.floor((Math.random() * (300 - 10) + 10));                
+                screensaverCounter = Math.floor((Math.random() * (300 - 10) + 10));
                 accelAmount = Math.abs(accelAmount);
             }
         }
@@ -240,6 +240,7 @@ window.onload = function() {
     ac.oninput(null);
     points.oninput(null);
     points.onchange(null);
+    pointsize.oninput(null);
     handleResize();
     drawScene();
 };
