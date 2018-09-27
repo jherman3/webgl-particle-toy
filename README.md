@@ -3,7 +3,8 @@
 ## Jake Herman, Agastya Gupta, Kevin Tan
 
 ### Build instructions
-* Install gulp `$ npm install gulp-cli`
+* Install gulp `$ npm install -g gulp-cli`
+* Install dependencies `npm install`
 * Build: `$ gulp`
 Site is output to `dist/`
 
