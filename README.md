@@ -22,6 +22,11 @@ integrating it with Jupyter Notebook / IPython, so we shelved the project and
 decided to iterate on this one instead.
 * I'm sure more stuff will break as we work on this...
 
+### Tutorials / resources used
+* https://www.typescriptlang.org/docs/handbook/gulp.html
+* http://lesscss.org/
+* https://gulpjs.org/getting-started.html
+
 # Hack a thing 1 README for background info
 ### What is it
 Live demos are cooler than words: check it out [here](http://cs98.me/hack-a-thing-1-particletoy/). Click and drag to interact with particles. Right click reverses the effect.
