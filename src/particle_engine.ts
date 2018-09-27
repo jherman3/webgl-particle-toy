@@ -6,14 +6,12 @@ export class ParticleEngine {
     private gl: WebGL2RenderingContext;
     private count: number;
     private transformFeedback: WebGLTransformFeedback;
-    mouse: Array<number>;
     private uniformLocs = {
         accel: null,
         accelAmount: null,
         mouse: null,
         particleSize: null
     };
-
     private buffers = {
         position: null,
         velocity: null,
