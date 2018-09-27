@@ -2,6 +2,11 @@
 
 ## Jake Herman, Agastya Gupta, Kevin Tan
 
+### Who did what
+* Jake: Original particle engine, openGL refactoring, NPM/Gulp automation
+* Kevin: Points size customization and screensaver automatic mode
+* Agastya: Screensaver automatic mode and bugfixes
+
 ### Build instructions
 * Install gulp `$ npm install -g gulp-cli`
 * Install dependencies `npm install`
@@ -17,13 +22,32 @@ hack). This will allow us to implement more features such as a screensaver mode
 that doesn't require user interaction.
 
 ### What didn't work
-* We originally wanted to do a music analysis project and settled on the Essentia
+* We originally wanted to do a music analysis project and settled on the [Essentia](http://essentia.upf.edu/documentation/index.html)
 python library. We couldn't get it to build on OSX reliably and had trouble
 integrating it with Jupyter Notebook / IPython, so we shelved the project and
 decided to iterate on this one instead.
 * We tried to get sound input working for an audio visualizer type thing using
 a JS library called p5. However, we couldn't integrate it with Typescript
 effectively and had trouble getting it to load properly in the browser.
+
+### What we learned
+The JS ecosystem has _so many_ build systems/tools to choose from. We learned how
+Gulp works because it seemed like the simplest one and this isn't a very complex
+site. This was also a great refresher in web-dev since none of the team members
+had developed a frontend in a long time.
+
+Our failed attempt to use Essentia also showed us the importance of easy, reproducable
+builds. If that library was easy to install/run then we'd probably use that for
+our hack-a-thing but we couldn't get it working. By contrast, the web tools we're
+using for this project all worked the first time we set them up.
+
+### Inspiration for future projects
+This project got us more interested in web development because even though the
+platform has its drawbacks, the end user does not need to install anything to use
+the app. It's nice to be able to deploy your app to a website and then anyone can
+access it instantly without having to install or setup anything. It also got us
+more interested in graphics and maybe using OpenGL for some kind of interactive
+data visualization.
 
 ### Tutorials / resources used
 * https://www.typescriptlang.org/docs/handbook/gulp.html
