@@ -6,6 +6,7 @@
 * Install gulp `$ npm install -g gulp-cli`
 * Install dependencies `npm install`
 * Build: `$ gulp`
+
 Site is output to `dist/`
 
 ### What's new
@@ -13,20 +14,22 @@ We're iterating on the design of the hack a thing 1 project by improving the bui
 system and using webdev tools like Gulp and NPM to handle dependencies. We're
 also refactoring the codebase to be more modular (the first version is quite a
 hack). This will allow us to implement more features such as a screensaver mode
-that doesn't require user interaction and (time/complexity permitting) a music
-visualizer that uses the microphone to control the particles.
+that doesn't require user interaction.
 
 ### What didn't work
 * We originally wanted to do a music analysis project and settled on the Essentia
 python library. We couldn't get it to build on OSX reliably and had trouble
 integrating it with Jupyter Notebook / IPython, so we shelved the project and
 decided to iterate on this one instead.
-* I'm sure more stuff will break as we work on this...
+* We tried to get sound input working for an audio visualizer type thing using
+a JS library called p5. However, we couldn't integrate it with Typescript
+effectively and had trouble getting it to load properly in the browser.
 
 ### Tutorials / resources used
 * https://www.typescriptlang.org/docs/handbook/gulp.html
 * http://lesscss.org/
 * https://gulpjs.org/getting-started.html
+* https://medium.com/superhighfives/deploying-to-github-pages-with-gulp-c06efc527de8
 
 # Hack a thing 1 README for background info
 ### What is it

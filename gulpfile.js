@@ -4,6 +4,8 @@ var source = require('vinyl-source-stream');
 var tsify = require("tsify");
 var less = require('gulp-less');
 var minifyCSS = require('gulp-csso');
+var deploy = require('gulp-gh-pages');
+
 var paths = {
     pages: ['src/*.html']
 };
@@ -18,6 +20,14 @@ gulp.task('css', function(){
       .pipe(less())
       .pipe(minifyCSS())
       .pipe(gulp.dest('dist'))
+});
+
+/**
+ * Push build to gh-pages
+ */
+gulp.task('deploy', ['default'], function () {
+    return gulp.src("./dist/**/*")
+      .pipe(deploy())
 });
 
 gulp.task("default", ["copy-html", "css"], function () {
