@@ -3,6 +3,7 @@ let VS_SOURCE = `#version 300 es
     uniform vec2 mouse;
     uniform bool accel;
     uniform float accelAmount;
+    uniform float particleSize;
 
     in vec2 a_position;
     in vec2 a_velocity;
@@ -17,6 +18,7 @@ let VS_SOURCE = `#version 300 es
     }
 
     void main() {
+        gl_PointSize = particleSize;
         gl_Position = vec4(a_position, 0, 1);
         // Pass through to fragment shader
         v_velocity = a_velocity;

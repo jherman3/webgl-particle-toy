@@ -36,6 +36,7 @@ window.onload = function() {
     let accelLocation = gl.getUniformLocation(program, "accel");
     let accelAmountLocation = gl.getUniformLocation(program, "accelAmount");
     let mouseLocation = gl.getUniformLocation(program, "mouse");
+    let particleSizeLocation = gl.getUniformLocation(program, "particleSize");
 
     let vao = gl.createVertexArray();
     gl.bindVertexArray(vao);
@@ -93,6 +94,7 @@ window.onload = function() {
     var accelAmount = 0.0;
     var mouse = [0.0, 0.0];
     var accel = false;
+    let particleSize = 1.0;
 
     // Callbacks
     canvas.oncontextmenu = function() {return false;};
@@ -142,6 +144,7 @@ window.onload = function() {
         gl.uniform1i(accelLocation, accel ? 1 : 0);
         gl.uniform1f(accelAmountLocation, accelAmount);
         gl.uniform2f(mouseLocation, mouse[0], mouse[1]);
+        gl.uniform1f(particleSizeLocation, particleSize);
 
         gl.clearColor(0.01, 0.01, 0.01, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
