@@ -51,7 +51,7 @@ window.onload = function () {
     let points = document.getElementById("points");
     var newCount = 0;
     points.oninput = function (this: HTMLInputElement, ev: Event) {
-        newCount = Math.round(500 * Math.exp(Number(this.value) / 12));
+        newCount = Math.round(5000 * Math.exp(Number(this.value) / 14));
         pointsVal.textContent = "" + newCount;
     };
     points.onchange = function (this: HTMLInputElement, ev: Event) {
