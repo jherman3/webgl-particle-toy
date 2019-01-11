@@ -1,7 +1,7 @@
 import { ParticleEngine } from './particle_engine'
 import { UserInputState } from './state';
 
-window.onload = function() {
+window.onload = function () {
     // Set up WebGL
     let canvas = <HTMLCanvasElement>document.getElementById("mainCanvas");
     let gl = canvas.getContext("webgl2");
@@ -14,36 +14,27 @@ window.onload = function() {
 
     var count = 10000;
     let state = new UserInputState();
-    var screensaverMode = false;
-    var screensaverCounter = 100;
-
     let engine = new ParticleEngine(gl, count);
 
     // Callbacks
-    canvas.oncontextmenu = function() {return false;};
-    canvas.addEventListener("mousemove", function(e){
-        if(!screensaverMode){
-            state.mouse[0] = (e.offsetX / canvas.clientWidth)*2-1;
-            state.mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight)*2-1;
+    canvas.oncontextmenu = function () { return false; };
+    canvas.addEventListener("mousemove", function (e) {
+        state.mouse[0] = (e.offsetX / canvas.clientWidth) * 2 - 1;
+        state.mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight) * 2 - 1;
+    });
+    canvas.addEventListener("mousedown", function (e) {
+        state.accel = true;
+        if (e.button == 2) {
+            // Invert acceleration for right click
+            state.accelAmount = -Math.abs(state.accelAmount);
+        } else {
+            state.accelAmount = Math.abs(state.accelAmount);
         }
     });
-    canvas.addEventListener("mousedown", function(e) {
-        if(!screensaverMode){
-            state.accel = true;
-            if(e.button == 2) {
-                // Invert acceleration for right click
-                state.accelAmount = -Math.abs(state.accelAmount);
-            } else {
-                state.accelAmount = Math.abs(state.accelAmount);
-            }
-        }
+    canvas.addEventListener("mouseup", function () {
+        state.accel = false;
     });
-    canvas.addEventListener("mouseup", function() {
-        if(!screensaverMode){
-            state.accel = false;
-        }
-    });
-    let handleResize = function() {
+    let handleResize = function () {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         // Tell WebGL how to convert from clip space to pixels
@@ -52,63 +43,45 @@ window.onload = function() {
     window.addEventListener("resize", handleResize);
     let acval = document.getElementById("accelVal");
     let ac = document.getElementById("accel");
-    ac.oninput = function(this: HTMLInputElement, ev: Event) {
+    ac.oninput = function (this: HTMLInputElement, ev: Event) {
         state.accelAmount = Number(this.value) * 0.0001;
         acval.textContent = state.accelAmount.toPrecision(3);
     };
     let pointsVal = document.getElementById("pointsVal");
     let points = document.getElementById("points");
     var newCount = 0;
-    points.oninput = function(this: HTMLInputElement, ev: Event) {
+    points.oninput = function (this: HTMLInputElement, ev: Event) {
         newCount = Math.round(500 * Math.exp(Number(this.value) / 12));
         pointsVal.textContent = "" + newCount;
     };
-    points.onchange = function(this: HTMLInputElement, ev: Event) {
+    points.onchange = function (this: HTMLInputElement, ev: Event) {
         // When user is done sliding, re-init particle buffers
         count = newCount;
         engine.resetParticles(count);
     };
     let pointsizeVal = document.getElementById("pointsizeVal");
     let pointsize = document.getElementById('pointsize');
-    pointsize.oninput = function(this: HTMLInputElement, ev: Event) {
+    pointsize.oninput = function (this: HTMLInputElement, ev: Event) {
         state.particleSize = Number(this.value) / 10.0;
         pointsizeVal.textContent = "" + state.particleSize;
     };
 
-    let screensaver = document.getElementById('screensaver');
-    screensaver.oninput = function(this: HTMLInputElement, ev: Event) {
-        if (this.checked){
-            screensaverMode = true;
-            state.accel = true;
-            randomizeMouse(-1,1);
-            screensaverCounter = 100;
-        }else{
-            screensaverMode = false;
-            state.mouse = [0.0, 0.0];
-            state.accel = false;
-        }
-    };
-
-    //https://gist.github.com/ValeryToda/fbf1de017f91c0ec3da04116c5ccf8b5
-    function randomizeMouse(min, max) {
-        state.mouse = [(Math.random() * (max - min) + min).toFixed(4) , (Math.random() * (max - min) + min).toFixed(4) ];
-    }
+    let frameCounter = 0;
+    let fpsVal = document.getElementById("fps");
+    let prevFrame = Date.now();
 
     function drawScene() {
         engine.draw(state);
-        if(screensaverMode && screensaverCounter==0){
-            newFunction(randomizeMouse);
-            var decelerate = false;
-            decelerate=Math.random() < 0.2 ? true : false;
-            if (decelerate){
-                state.accelAmount = -Math.abs(state.accelAmount);
-                screensaverCounter = Math.floor((Math.random() * (100 - 10) + 10));
-            }else{
-                screensaverCounter = Math.floor((Math.random() * (300 - 10) + 10));
-                state.accelAmount = Math.abs(state.accelAmount);
-            }
+        if (frameCounter == 10) {
+            let now = Date.now();
+            let fps = 10000.0 / (now - prevFrame);
+            prevFrame = now;
+            fpsVal.textContent = "" + fps;
+            frameCounter = 0;
+        } else {
+            frameCounter += 1;
         }
-        screensaverCounter--;
+
         requestAnimationFrame(drawScene);
     }
     // Set up points by manually calling the callbacks
@@ -119,6 +92,3 @@ window.onload = function() {
     handleResize();
     drawScene();
 };
-function newFunction(randomizeMouse: (min: any, max: any) => void) {
-    randomizeMouse(-1,1);
-}

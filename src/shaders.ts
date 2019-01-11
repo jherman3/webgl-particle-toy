@@ -22,10 +22,15 @@ let VS_SOURCE = `#version 300 es
         gl_Position = vec4(a_position, 0, 1);
         // Pass through to fragment shader
         v_velocity = a_velocity;
+        //v_velocity.y -= 0.0001;
 
         if(accel) {
             vec2 del = normalize(mouse - a_position);
-            v_velocity += del * accelAmount;
+            if (accelAmount < 0.0) {
+                v_velocity -= vec2(del.y, -del.x)*accelAmount/5.0 + del * accelAmount;
+            } else {
+                v_velocity += del * accelAmount;
+            }
         }
 
         // Friction
