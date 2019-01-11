@@ -72,7 +72,7 @@ window.onload = function () {
 
     function drawScene() {
         engine.draw(state);
-        if (frameCounter == 10) {
+        if (frameCounter == 9) {
             let now = Date.now();
             let fps = 10000.0 / (now - prevFrame);
             prevFrame = now;
