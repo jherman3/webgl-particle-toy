@@ -44,7 +44,7 @@ window.onload = function () {
     let acval = document.getElementById("accelVal");
     let ac = document.getElementById("accel");
     ac.oninput = function (this: HTMLInputElement, ev: Event) {
-        state.accelAmount = Number(this.value) * 0.0001;
+        state.accelAmount = Number(this.value) * 0.05;
         acval.textContent = state.accelAmount.toPrecision(3);
     };
     let pointsVal = document.getElementById("pointsVal");

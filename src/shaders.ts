@@ -4,6 +4,7 @@ let VS_SOURCE = `#version 300 es
     uniform bool accel;
     uniform float accelAmount;
     uniform float particleSize;
+    uniform float dt;
 
     in vec2 a_position;
     in vec2 a_velocity;
@@ -27,18 +28,18 @@ let VS_SOURCE = `#version 300 es
         if(accel) {
             vec2 del = normalize(mouse - a_position);
             if (accelAmount < 0.0) {
-                v_velocity -= vec2(del.y, -del.x)*accelAmount/5.0 + del * accelAmount;
+                v_velocity -= (vec2(del.y, -del.x)/5.0 + del) * accelAmount * dt;
             } else {
-                v_velocity += del * accelAmount;
+                v_velocity += del * accelAmount * dt;
             }
         }
 
         // Friction
-        v_velocity *= (1.0 - 0.01 * (1.0 + random(v_position)));
+        v_velocity *= (1.0 - 0.005 * (1.0 + random(v_position)));
 
         // Update pos/vel for transform feedback
         v_position = a_position;
-        v_position += v_velocity;
+        v_position += v_velocity * dt;
         if(v_position.x > 1.0) {
             v_position.x = 2.0 - v_position.x;
             v_velocity.x = -v_velocity.x;
@@ -77,7 +78,7 @@ let FS_SOURCE = `#version 300 es
     void main() {
         // Technically HSV is supposed to be between 0 and 1 but I found that
         // letting the value go higher causes it to wrap-around and look cool
-        float vel = clamp(length(v_velocity) * 20.0, 0.0, 2.0);
+        float vel = clamp(length(v_velocity) * 0.8, 0.0, 2.0);
         outColor = vec4(
             hsv2rgb(vec3(
                 0.6 - vel * 0.6,  // hue

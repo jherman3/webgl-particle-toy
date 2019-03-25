@@ -10,7 +10,8 @@ export class ParticleEngine {
         accel: null,
         accelAmount: null,
         mouse: null,
-        particleSize: null
+        particleSize: null,
+        dt: null,
     };
     private buffers = {
         position: [null, null],
@@ -22,6 +23,7 @@ export class ParticleEngine {
     };
 
     private index = 0;
+    private prevFrame = Date.now();
 
     private throwOnGLError(err, funcName, args) {
         throw WebGLDebugUtils.glEnumToString(err) + " was caused by call to: " + funcName;
@@ -49,6 +51,7 @@ export class ParticleEngine {
         this.uniformLocs.accelAmount = gl.getUniformLocation(program, "accelAmount");
         this.uniformLocs.mouse = gl.getUniformLocation(program, "mouse");
         this.uniformLocs.particleSize = gl.getUniformLocation(program, "particleSize");
+        this.uniformLocs.dt = gl.getUniformLocation(program, "dt");
         this.attributeLocs.position = gl.getAttribLocation(program, "a_position");
         this.attributeLocs.velocity = gl.getAttribLocation(program, "a_velocity");
 
@@ -69,10 +72,14 @@ export class ParticleEngine {
 
     draw(state: UserInputState) {
         let gl = this.gl;
+        let now = Date.now();
+        let dt = (now - this.prevFrame) / 1000.0;
+        this.prevFrame = now;
         gl.uniform1i(this.uniformLocs.accel, state.accel ? 1 : 0);
         gl.uniform1f(this.uniformLocs.accelAmount, state.accelAmount);
         gl.uniform2f(this.uniformLocs.mouse, state.mouse[0], state.mouse[1]);
         gl.uniform1f(this.uniformLocs.particleSize, state.particleSize);
+        gl.uniform1f(this.uniformLocs.dt, dt);
 
         // Set up buffer data
         let size = 2;          // 2 components per iteration
