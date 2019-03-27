@@ -2,6 +2,7 @@ let VS_SOURCE = `#version 300 es
 
     uniform vec2 mouse;
     uniform bool accel;
+    uniform bool vortex;
     uniform float accelAmount;
     uniform float particleSize;
     uniform float dt;
@@ -25,13 +26,12 @@ let VS_SOURCE = `#version 300 es
         v_velocity = a_velocity;
         //v_velocity.y -= 0.0001;
 
-        if(accel) {
+        if (accel) {
             vec2 del = normalize(mouse - a_position);
-            if (accelAmount < 0.0) {
-                v_velocity -= (vec2(del.y, -del.x)/5.0 + del) * accelAmount * dt;
-            } else {
-                v_velocity += del * accelAmount * dt;
-            }
+            v_velocity += del * accelAmount * dt;
+        } else if (vortex) {
+            vec2 del = normalize(mouse - a_position);
+            v_velocity += (vec2(del.y, -del.x)/5.0 + del) * accelAmount * dt;
         }
 
         // Friction

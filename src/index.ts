@@ -23,16 +23,15 @@ window.onload = function () {
         state.mouse[1] = ((canvas.clientHeight - e.offsetY) / canvas.clientHeight) * 2 - 1;
     });
     canvas.addEventListener("mousedown", function (e) {
-        state.accel = true;
         if (e.button == 2) {
-            // Invert acceleration for right click
-            state.accelAmount = -Math.abs(state.accelAmount);
+            state.vortex = true;
         } else {
-            state.accelAmount = Math.abs(state.accelAmount);
+            state.accel = true;
         }
     });
     canvas.addEventListener("mouseup", function () {
         state.accel = false;
+        state.vortex = false;
     });
     let handleResize = function () {
         canvas.width = window.innerWidth;

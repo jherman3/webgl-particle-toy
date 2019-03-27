@@ -8,6 +8,7 @@ export class ParticleEngine {
     private transformFeedback: WebGLTransformFeedback;
     private uniformLocs = {
         accel: null,
+        vortex: null,
         accelAmount: null,
         mouse: null,
         particleSize: null,
@@ -48,10 +49,12 @@ export class ParticleEngine {
         this.buffers.velocity[1] = gl.createBuffer();
 
         this.uniformLocs.accel = gl.getUniformLocation(program, "accel");
+        this.uniformLocs.vortex = gl.getUniformLocation(program, "vortex");
         this.uniformLocs.accelAmount = gl.getUniformLocation(program, "accelAmount");
         this.uniformLocs.mouse = gl.getUniformLocation(program, "mouse");
         this.uniformLocs.particleSize = gl.getUniformLocation(program, "particleSize");
         this.uniformLocs.dt = gl.getUniformLocation(program, "dt");
+
         this.attributeLocs.position = gl.getAttribLocation(program, "a_position");
         this.attributeLocs.velocity = gl.getAttribLocation(program, "a_velocity");
 
@@ -76,6 +79,7 @@ export class ParticleEngine {
         let dt = (now - this.prevFrame) / 1000.0;
         this.prevFrame = now;
         gl.uniform1i(this.uniformLocs.accel, state.accel ? 1 : 0);
+        gl.uniform1i(this.uniformLocs.vortex, state.vortex ? 1 : 0);
         gl.uniform1f(this.uniformLocs.accelAmount, state.accelAmount);
         gl.uniform2f(this.uniformLocs.mouse, state.mouse[0], state.mouse[1]);
         gl.uniform1f(this.uniformLocs.particleSize, state.particleSize);
