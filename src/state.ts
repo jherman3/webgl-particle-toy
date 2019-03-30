@@ -3,5 +3,6 @@ export class UserInputState {
     accel = false;
     vortex = false;
     particleSize = 1.0;
-    accelAmount = 0.001;
+    accelAmount = 0.75;
+    friction = 0.3;
 }

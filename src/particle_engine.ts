@@ -13,6 +13,7 @@ export class ParticleEngine {
         mouse: null,
         particleSize: null,
         dt: null,
+        friction: null,
     };
     private buffers = {
         position: [null, null],
@@ -54,6 +55,7 @@ export class ParticleEngine {
         this.uniformLocs.mouse = gl.getUniformLocation(program, "mouse");
         this.uniformLocs.particleSize = gl.getUniformLocation(program, "particleSize");
         this.uniformLocs.dt = gl.getUniformLocation(program, "dt");
+        this.uniformLocs.friction = gl.getUniformLocation(program, "friction");
 
         this.attributeLocs.position = gl.getAttribLocation(program, "a_position");
         this.attributeLocs.velocity = gl.getAttribLocation(program, "a_velocity");
@@ -84,6 +86,7 @@ export class ParticleEngine {
         gl.uniform2f(this.uniformLocs.mouse, state.mouse[0], state.mouse[1]);
         gl.uniform1f(this.uniformLocs.particleSize, state.particleSize);
         gl.uniform1f(this.uniformLocs.dt, dt);
+        gl.uniform1f(this.uniformLocs.friction, state.friction);
 
         // Set up buffer data
         let size = 2;          // 2 components per iteration

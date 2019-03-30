@@ -64,6 +64,12 @@ window.onload = function () {
         state.particleSize = Number(this.value) / 10.0;
         pointsizeVal.textContent = "" + state.particleSize;
     };
+    let frictionVal = document.getElementById("frictionVal");
+    let friction = document.getElementById('friction');
+    friction.oninput = function (this: HTMLInputElement, ev: Event) {
+        state.friction = Number(this.value) * 0.01;
+        frictionVal.textContent = state.friction.toPrecision(3);
+    };
 
     let frameCounter = 0;
     let fpsVal = document.getElementById("fps");
@@ -88,6 +94,7 @@ window.onload = function () {
     points.oninput(null);
     points.onchange(null);
     pointsize.oninput(null);
+    friction.oninput(null);
     handleResize();
     drawScene();
 };
