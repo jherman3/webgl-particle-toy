@@ -36,7 +36,7 @@ let VS_SOURCE = `#version 300 es
         }
 
         // Friction
-        v_velocity *= (1.0 - friction * dt) * (1.0 + random(v_position)));
+        v_velocity *= (1.0 - friction * dt * (1.0 + random(v_position)));
 
         // Update pos/vel for transform feedback
         v_position = a_position;
