@@ -33,6 +33,49 @@ window.onload = function () {
         state.accel = false;
         state.vortex = false;
     });
+
+    // Touch handler: Set mouse to the average touch position and handle vortex
+    // and accel behavior
+    let updateTouch = (e: TouchEvent) => {
+        state.mouse[0] = 0.0;
+        state.mouse[1] = 0.0;
+        for(let i = 0; i < e.touches.length; i += 1) {
+            state.mouse[0] += (e.touches[i].clientX / canvas.clientWidth) * 2 - 1;
+            state.mouse[1] += ((canvas.clientHeight - e.touches[i].clientY) / canvas.clientHeight) * 2 - 1;
+        }
+        state.mouse[0] /= e.touches.length;
+        state.mouse[1] /= e.touches.length;
+        if (e.touches.length > 1) {
+            state.accel = false;
+            state.vortex = true;
+        } else if (e.touches.length > 0) {
+            state.accel = true;
+            state.vortex = false;
+        } else {
+            state.accel = false;
+            state.vortex = false;
+        }
+    }
+    canvas.addEventListener("touchmove", updateTouch);
+    canvas.addEventListener("touchstart", updateTouch);
+    canvas.addEventListener("touchend", updateTouch);
+    // Prevent scrolling when touching the canvas
+    document.body.addEventListener("touchstart", function (e) {
+        if (e.target == canvas) {
+            e.preventDefault();
+        }
+    }, false);
+    document.body.addEventListener("touchend", function (e) {
+        if (e.target == canvas) {
+            e.preventDefault();
+        }
+    }, false);
+    document.body.addEventListener("touchmove", function (e) {
+        if (e.target == canvas) {
+            e.preventDefault();
+        }
+    }, false);
+
     let handleResize = function () {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
